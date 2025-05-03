@@ -4,7 +4,6 @@ mod octopus;
 mod rabbit;
 mod utils;
 
-use constants::Size::MAX_FRAME_SIZE;
 use crossterm::event::{KeyCode, KeyEventKind};
 use ground::Ground;
 use octopus::{Cactus, CactusType, ShortCactus, TallCactus};
@@ -38,7 +37,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         handle_input_events(tx_to_input_events);
     });
 
-    let terminal_rect = get_default_frame_rect(&terminal);
+    let terminal_size = terminal.size()?;
+
+    let terminal_rect = get_default_frame_rect(terminal_size.width, terminal_size.height);
 
     let mut app = App {
         frame_rect: terminal_rect,
@@ -236,18 +237,18 @@ fn handle_input_events(tx: mpsc::Sender<CustomEvent>) {
                 tx.send(CustomEvent::Input(key_event)).unwrap()
             }
             crossterm::event::Event::Resize(width, height) => {
-                let f_w = if width > MAX_FRAME_SIZE.0 {
-                    MAX_FRAME_SIZE.0
-                } else {
-                    width
-                };
-                let f_h = if height > MAX_FRAME_SIZE.1 {
-                    MAX_FRAME_SIZE.1
-                } else {
-                    height
-                };
+                // let f_w = if width > MAX_FRAME_SIZE.0 {
+                //     MAX_FRAME_SIZE.0
+                // } else {
+                //     width
+                // };
+                // let f_h = if height > MAX_FRAME_SIZE.1 {
+                //     MAX_FRAME_SIZE.1
+                // } else {
+                //     height
+                // };
 
-                tx.send(CustomEvent::Resize(f_w, f_h)).unwrap();
+                tx.send(CustomEvent::Resize(width, height)).unwrap();
             }
             _ => {}
         }
