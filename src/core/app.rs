@@ -177,7 +177,7 @@ impl<'a> App<'a> {
 
     fn on_tick(&mut self) {
         self.remove_obstacle();
-        self.ground.scroll();
+        self.ground.scroll(None);
         self.rabbit.update_physics();
         self.check_collisions();
 
