@@ -16,7 +16,7 @@ pub enum CactusType<'a> {
     Tall(TallCactus<'a>),
 }
 
-pub trait Cactus<'a> {
+pub trait Obstacle<'a> {
     fn new(start_x: u16) -> Self;
     fn update_x(&mut self, delta_x: isize);
     fn get_all_attr(&'a self) -> (u16, u16, u16, &'a str);
@@ -29,7 +29,7 @@ pub struct ShortCactus<'a> {
     art: &'a str,
 }
 
-impl<'a> Cactus<'a> for ShortCactus<'a> {
+impl<'a> Obstacle<'a> for ShortCactus<'a> {
     fn new(start_x: u16) -> Self {
         let art = SHORT_CACTUS_ASCII;
         let width = 3 as u16;
@@ -58,7 +58,7 @@ pub struct TallCactus<'a> {
     art: &'a str,
 }
 
-impl<'a> Cactus<'a> for TallCactus<'a> {
+impl<'a> Obstacle<'a> for TallCactus<'a> {
     fn new(start_x: u16) -> Self {
         let art = TALL_CACTUS_ASCII;
         let width = 7 as u16;
