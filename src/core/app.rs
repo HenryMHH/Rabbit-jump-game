@@ -5,7 +5,7 @@ use crate::core::{
     ground::Ground,
     rabbit::{RABBIT_ART, RABBIT_HEIGHT, RABBIT_WIDTH, Rabbit},
 };
-use crate::utils::{CustomEvent, get_new_obstacle};
+use crate::utils::CustomEvent;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEventKind};
 use ratatui::{
@@ -16,12 +16,14 @@ use ratatui::{
 use std::sync::mpsc::{self, RecvTimeoutError};
 use std::time::Instant;
 
+use super::ObstacleVec;
+
 pub struct App<'a> {
     pub frame_rect: Rect,
     pub state: GameState,
     pub ground: Ground,
     pub rabbit: Rabbit,
-    pub obstacles: Vec<CactusType<'a>>,
+    pub obstacles: ObstacleVec<'a>,
 }
 
 impl<'a> App<'a> {
@@ -108,12 +110,10 @@ impl<'a> App<'a> {
             rabbit_area,
         );
 
+        let obstacles = self.obstacles.get_obstacles();
         // render cactus
-        for cactus in self.obstacles.iter() {
-            let (x, width, height, art) = match cactus {
-                CactusType::Short(short_cactus) => short_cactus.get_all_attr(),
-                CactusType::Tall(tall_cactus) => tall_cactus.get_all_attr(),
-            };
+        for cactus in obstacles.iter() {
+            let (x, width, height, art) = cactus.get_all_attr();
 
             let cactus_paragraph = Paragraph::new(art);
             frame.render_widget(
@@ -132,7 +132,7 @@ impl<'a> App<'a> {
             RABBIT_WIDTH,
             RABBIT_HEIGHT as u16,
         );
-        let first_cactus = self.obstacles.first();
+        let first_cactus = self.obstacles.get_obstacles().first();
 
         if let Some(cactus) = first_cactus {
             let (x, width, height, _) = match cactus {
@@ -146,16 +146,6 @@ impl<'a> App<'a> {
             if rabbit_area.intersects(cactus_area) {
                 self.state = GameState::GameOver;
             }
-        }
-    }
-
-    fn remove_obstacle(&mut self) {
-        if !self.obstacles.is_empty() {
-            // remove cactus if the x is less or equal to 0
-            self.obstacles.retain(|cactus| match cactus {
-                CactusType::Short(short_cactus) => short_cactus.get_all_attr().0 > 0,
-                CactusType::Tall(tall_cactus) => tall_cactus.get_all_attr().0 > 0,
-            });
         }
     }
 
@@ -176,23 +166,23 @@ impl<'a> App<'a> {
     }
 
     fn on_tick(&mut self) {
-        self.remove_obstacle();
+        self.obstacles.remove_obstacle();
         self.ground.scroll(None);
         self.rabbit.update_physics();
         self.check_collisions();
 
         // add cactus every 53 ticks
         if self.ground.offset() % 53 == 0 {
-            let new_obstacle = get_new_obstacle(self.frame_rect.width);
-
-            self.obstacles.push(new_obstacle);
+            self.obstacles.add_new_obstacle(self.frame_rect);
         }
 
-        for cactus in self.obstacles.iter_mut() {
-            match cactus {
-                CactusType::Short(short_cactus) => short_cactus.update_x(1), // 如果是 Short，呼叫 short_cactus 的方法
-                CactusType::Tall(tall_cactus) => tall_cactus.update_x(1), // 如果是 Tall，呼叫 tall_cactus 的方法
-            };
-        }
+        self.obstacles.update_obstacles(None);
+
+        // for cactus in self.obstacles.iter_mut() {
+        //     match cactus {
+        //         CactusType::Short(short_cactus) => short_cactus.update_x(1), // 如果是 Short，呼叫 short_cactus 的方法
+        //         CactusType::Tall(tall_cactus) => tall_cactus.update_x(1), // 如果是 Tall，呼叫 tall_cactus 的方法
+        //     };
+        // }
     }
 }

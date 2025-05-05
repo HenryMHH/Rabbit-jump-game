@@ -5,7 +5,7 @@ mod utils;
 use anyhow::Result;
 
 use constants::game::GameState;
-use core::{App, Ground, Rabbit};
+use core::{App, Ground, ObstacleVec, Rabbit};
 use std::{
     sync::mpsc::{self},
     thread,
@@ -31,7 +31,7 @@ fn main() -> Result<()> {
         state: GameState::Running,
         ground: Ground::new("-^-.-^.".to_string()),
         rabbit: Rabbit::new(),
-        obstacles: vec![],
+        obstacles: ObstacleVec::new(),
     };
 
     app.run(&mut terminal, event_rx)?;
